@@ -1,29 +1,16 @@
 import sys
 import time
 
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtChart
 
-from wallets2 import Wallets
-from widgets import AddWalletWidget, DeleteWalletWidget, Bar
 import settings
-
-
-def init_globals():
-    # update globals
-    # settings.names_of_wallets = []
-    settings.names_of_wallets.clear()
-    settings.names_of_wallets.extend(Wallets.get_list_of_wallets().value)
-    # TODO: supported params should got from another source
-    # TODO: [i.e. file_of_supported_markets_and_pairs]
-    settings.supported_markets.clear()
-    settings.supported_markets.extend(Wallets.value_range_of_parameter('markets').value)
-    settings.supported_pairs.clear()
-    settings.supported_pairs.extend(Wallets.value_range_of_parameter('pairs').value)
+from wallets2 import Wallets
+from widgets import AddWalletWidget, DeleteWalletWidget, Bar, PublicChart
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.add_wallet_widget = AddWalletWidget()
         self.delete_wallet_widget = DeleteWalletWidget()
         self.init_ui()
@@ -41,7 +28,7 @@ class MainWindow(QtWidgets.QMainWindow):
             qr.moveCenter(cp)
             w.move(qr.topLeft())
 
-        self.resize(800, 700)
+        self.resize(800, 900)
         self.setWindowTitle('Trader')
         center()
 
@@ -62,7 +49,7 @@ class MainWindow(QtWidgets.QMainWindow):
         #
         # public_box
         self.public_info_box = QtWidgets.QGroupBox('Public Info', self)
-        self.public_info_box.setGeometry(QtCore.QRect(10, 40, 780, 90))
+        self.public_info_box.setGeometry(QtCore.QRect(10, 40, 780, 390))
         self.public_pair = Bar('Pair', settings.supported_pairs, 20, 20, 70, 20, True, self.public_info_box)
         self.public_market = Bar('Market', settings.supported_markets, 20, 50, 70, 50, True, self.public_info_box)
         #
@@ -100,6 +87,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.p_low = QtWidgets.QLabel('low_info', self.pair_info_box)
         self.p_low.setGeometry(280, 40, 70, 20)
         #
+        # plot
+        public_plot = PublicChart()
+        cv = QtChart.QChartView()
+        cv.setChart(public_plot)
+        cv.setParent(self.pair_info_box)
+        cv.setGeometry(5, 60, self.pair_info_box.geometry().width() - 10,
+                       self.pair_info_box.geometry().height() - 65)
+        cv.setRenderHint(True)
+
         # wallet_box
         self.wallet_box = QtWidgets.QGroupBox('Wallet', self)
         self.wallet_box.setGeometry(QtCore.QRect(10, self.public_info_box.geometry().bottom() + 10, 780, 250))
@@ -136,14 +132,12 @@ class MainWindow(QtWidgets.QMainWindow):
         #
 
         # actions to selections from combo boxes
+
         def on_change_wallet_bar():
             settings.selected_wallet_name = self.wallet_bar.combo.currentText()
             if settings.selected_wallet_name != '':
-                # global selected_wallet
                 settings.selected_wallet.update(
                     Wallets.get_wallet_by_name(settings.selected_wallet_name).value)
-                # print(f"settings.selected_wallet = {settings.selected_wallet}")
-                # global robot_names
                 settings.robot_names.clear()
                 settings.robot_names.extend(
                     Wallets.get_list_of_robot_names_by_wallet_name(settings.selected_wallet_name).value)
@@ -152,11 +146,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         def on_change_market_bar():
             settings.selected_public_market = self.public_market.combo.currentText()
-            print(settings.selected_public_market)
 
         def on_change_pair_bar():
             settings.selected_public_pair = self.public_pair.combo.currentText()
-            print(settings.selected_public_pair)
 
         self.wallet_bar.combo.currentTextChanged.connect(on_change_wallet_bar)
         self.public_market.combo.currentTextChanged.connect(on_change_market_bar)
@@ -177,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     ' '.join([
                         self.public_market.combo.currentText(),
                         self.public_pair.combo.currentText().upper(),
-                        time.ctime(settings.public_pair_value.value['updated'])
+                        time.ctime(float(settings.public_pair_value.value['updated']))
                     ]))
             else:
                 self.p_sell_price.setText('sell_info')
@@ -195,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     if float(v) > 0:
                         value = '{0:.8f}'.format(v)
                         text = text + "{0}{1}".format(k.ljust(5, ' '), value.rjust(25, ' ')) + "\n"
-            print(settings.selected_wallet_balance.value)
+            # print(settings.selected_wallet_balance.value)
             self.balance_box_textBrowser.setText(text)
 
         def on_active_orders_change():
@@ -218,8 +210,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
-    settings.main_ticker.start()
-    init_globals()
+    settings.names_of_wallets = Wallets.get_list_of_wallets().value
+    settings.supported_pairs = Wallets.value_range_of_parameter('pairs').value
+
+    settings.refresh_data_thread.start()
     trader_app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

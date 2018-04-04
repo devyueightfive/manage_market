@@ -1,7 +1,40 @@
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtChart
 
-from wallets2 import Wallets
 import settings
+from wallets2 import Wallets
+
+
+class PublicChart(QtChart.QChart):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.init()
+
+    def init(self):
+        settings.public_pair_trades.changed.connect(self.update_series)
+
+    def update_series(self):
+        # print("chart ", settings.public_pair_trades.value)
+        self.removeAllSeries()
+        trade_series = QtChart.QLineSeries()
+        trade_series.setColor(QtGui.QColor().fromRgb(0, 255, 0))
+        if len(settings.public_pair_trades.value) > 0:
+            series = []
+            for v in settings.public_pair_trades.value:
+                date = int(v['timestamp']) * 1000
+                value = float(v['price'])
+                trade_series.append(date, value)
+                series.append((date, value))
+            # print(series)
+            self.addSeries(trade_series)
+            self.setTitle(f"Data from {settings.selected_public_market}")
+            trade_series.setName(settings.selected_public_pair)
+        else:
+            self.setTitle("<market name>")
+            trade_series.setName("<coin_pair>")
+        self.createDefaultAxes()
+        axis_x = QtChart.QDateTimeAxis()
+        axis_x.setFormat("dd-MMM hh:mm")
+        self.setAxisX(axis_x, trade_series)
 
 
 class SComboBox(QtWidgets.QComboBox):

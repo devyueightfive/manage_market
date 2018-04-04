@@ -1,7 +1,9 @@
 import os
+
 from PyQt5.QtCore import QObject, pyqtSignal
 
-import tickers
+import data_updater
+from market_api import api
 
 
 class ValueWithSignal(QObject):
@@ -34,19 +36,20 @@ balance_file = "\\".join([my_path, "json\\balance.json"])
 active_orders_file = "\\".join([my_path, "\\json\\active_orders.json"])
 bots_file = "\\".join([my_path, "json\\active_orders.json"])
 
-# Globals
+# globals
 #
-main_ticker = tickers.MarketTicker()
+refresh_data_thread = data_updater.MarketDataUpdater()
 #
-supported_markets = list()
-supported_pairs = list()
-# public
+_, supported_markets = _, sup_markets = api.get_api(None)
+supported_pairs = []
+# data in public widget
 selected_public_market = ''  # connect to public_market.combo.currentText
 selected_public_pair = ''  # connect to public_pair.combo.currentText
 public_pair_value = ValueWithSignal(value={})
-public_pair_update_time = 0  # last time when data was updated (in seconds)
+public_pair_trades = ValueWithSignal(value=[])
+public_data_last_time_update = 0  # last time when data was updated (in seconds)
 # wallets
-names_of_wallets = list()  # name list of created wallets
+names_of_wallets = []  # name list of created wallets
 selected_wallet_name = ''  # connect to wallet_bar.combo.currentText
 selected_wallet = {}
 selected_wallet_balance = ValueWithSignal(value={})
