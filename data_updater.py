@@ -4,7 +4,7 @@ from threading import Thread
 import settings
 from market_api import api
 
-delay_update = 5  # in seconds
+delay_update = 10  # in seconds
 
 
 class MarketDataUpdater(Thread):

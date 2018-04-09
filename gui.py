@@ -159,17 +159,17 @@ class MainWindow(QtWidgets.QMainWindow):
         def on_public_pair_change():
             # print(settings.public_pair_value.value)
             if len(settings.public_pair_value.value.keys()) > 0:
-                self.p_sell_price.setText(str(settings.public_pair_value.value['sell']))
-                self.p_buy_price.setText(str(settings.public_pair_value.value['buy']))
-                self.p_last.setText(str(settings.public_pair_value.value['last']))
-                self.p_avg.setText(str(settings.public_pair_value.value['avg']))
-                self.p_high.setText(str(settings.public_pair_value.value['high']))
-                self.p_low.setText(str(settings.public_pair_value.value['low']))
+                self.p_sell_price.setText(str(settings.public_pair_value.value.get('sell', 'sell_info')))
+                self.p_buy_price.setText(str(settings.public_pair_value.value.get('buy', 'buy_info')))
+                self.p_last.setText(str(settings.public_pair_value.value.get('last', 'last_info')))
+                self.p_avg.setText(str(settings.public_pair_value.value.get('avg', 'avg_info')))
+                self.p_high.setText(str(settings.public_pair_value.value.get('high', 'high_info')))
+                self.p_low.setText(str(settings.public_pair_value.value.get('low', 'low_info')))
                 self.pair_info_box.setTitle(
                     ' '.join([
                         self.public_market.combo.currentText(),
                         self.public_pair.combo.currentText().upper(),
-                        time.ctime(float(settings.public_pair_value.value['updated']))
+                        time.ctime(float(settings.public_pair_value.value.get('updated', 'updated_info')))
                     ]))
             else:
                 self.p_sell_price.setText('sell_info')
