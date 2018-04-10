@@ -32,13 +32,17 @@ class MarketDataUpdater(Thread):
         # print("balance finished")
         MarketDataUpdater.update_active_orders()
         time.sleep(0.5)
-        print(f"{time.asctime()}: Updated.")
+        # print(f"{time.asctime()}: Updated.")
 
     @staticmethod
     def update_public_data():
         # update ticker, trades data for coin/market selected by user
-        if settings.selected_public_pair != '' and \
-                settings.selected_public_market != '':
+        if settings.selected_public_pair not in ['', None] and \
+                settings.selected_public_market not in ['', None]:
+            print(
+                f"{time.asctime()} Updater: \n"
+                f"\tsymbol:\t{settings.selected_public_pair}\n"
+                f"\tmarket:\t{settings.selected_public_market}")
             if (time.time() - settings.public_data_last_time_update) > delay_update:
                 settings.public_data_last_time_update = time.time()
                 coin_from, coin_to = settings.selected_public_pair.split(sep='_')
@@ -82,39 +86,7 @@ class MarketDataUpdater(Thread):
     @staticmethod
     def update_balance():
         pass
-        # if settings.selected_wallet_name != '':
-        #     if (time.time() - settings.wallet_balance_update_time) > delay_update:
-        #         response = TradeApi.getinfo(settings.selected_wallet)
-        #         # print(f"Balance {response}")
-        #         if response['success']:
-        #             settings.selected_wallet_balance.value.clear()
-        #             settings.selected_wallet_balance.value.update(response['return']['funds'])
-        #             settings.selected_wallet_balance.changed.emit()
-        #             if 'funds_incl_orders' in response['return'].keys():
-        #                 pass
-        #             settings.wallet_balance_update_time = time.time()
-        #         else:
-        #             settings.selected_wallet_balance.value.clear()
-        #             settings.selected_wallet_balance.changed.emit()
-        # else:
-        #     settings.selected_wallet_balance.value.clear()
-        #     settings.selected_wallet_balance.changed.emit()
 
     @staticmethod
     def update_active_orders():
         pass
-        # if settings.selected_wallet_name != '':
-        #     if (time.time() - settings.wallet_active_update_time) > delay_update:
-        #         response = TradeApi.active_orders(settings.selected_wallet)
-        #         # print(f"Active Orders {response}")
-        #         if response['success']:
-        #             settings.selected_wallet_active_orders.value.clear()
-        #             settings.selected_wallet_active_orders.value.update(response['return'])
-        #             settings.selected_wallet_active_orders.changed.emit()
-        #             settings.wallet_active_update_time = time.time()
-        #         else:
-        #             settings.selected_wallet_active_orders.value.clear()
-        #             settings.selected_wallet_active_orders.changed.emit()
-        # else:
-        #     settings.selected_wallet_active_orders.value.clear()
-        #     settings.selected_wallet_active_orders.changed.emit()

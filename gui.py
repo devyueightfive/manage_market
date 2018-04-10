@@ -5,6 +5,7 @@ from PyQt5 import QtCore, QtWidgets, QtChart
 
 import settings
 from wallets2 import Wallets
+from widget_addons import SymbolInfoWidget
 from widgets import AddWalletWidget, DeleteWalletWidget, Bar, PublicChart
 
 
@@ -28,7 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
             qr.moveCenter(cp)
             w.move(qr.topLeft())
 
-        self.resize(800, 900)
+        self.resize(1000, 900)
         self.setWindowTitle('Trader')
         center()
 
@@ -50,9 +51,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # public_box
         self.public_info_box = QtWidgets.QGroupBox('Public Info', self)
         self.public_info_box.setGeometry(QtCore.QRect(10, 40, 780, 390))
-        self.public_pair = Bar('Pair', settings.supported_pairs, 20, 20, 70, 20, True, self.public_info_box)
-        self.public_market = Bar('Market', settings.supported_markets, 20, 50, 70, 50, True, self.public_info_box)
-        #
+        # info widget
+        self.info_widget = SymbolInfoWidget(parent=self.public_info_box)
+
+        self.public_pair = Bar('Pair', settings.supported_pairs, 20, 50, 70, 50, True, self.public_info_box)
+        self.public_market = Bar('Market', settings.supported_markets, 20, 20, 70, 20, True, self.public_info_box)
+
         # pair_info_box
         self.pair_info_box = QtWidgets.QGroupBox('Pair Info', self.public_info_box)
         self.pair_info_box.setGeometry(QtCore.QRect(180, 10, 590, self.public_info_box.geometry().height() - 20))
@@ -146,9 +150,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         def on_change_market_bar():
             settings.selected_public_market = self.public_market.combo.currentText()
+            # print(f"Selected market = {settings.selected_public_market}")
+            settings.public_data_last_time_update = 0
 
         def on_change_pair_bar():
             settings.selected_public_pair = self.public_pair.combo.currentText()
+            # print(f"Selected symbol = {settings.selected_public_pair}")
+            settings.public_data_last_time_update = 0
 
         self.wallet_bar.combo.currentTextChanged.connect(on_change_wallet_bar)
         self.public_market.combo.currentTextChanged.connect(on_change_market_bar)
@@ -205,6 +213,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.buy_orders_textBrowser.setText(buy_text)
 
         settings.public_pair_value.changed.connect(on_public_pair_change)
+        settings.public_pair_value.changed.connect(self.info_widget.update_info)
         settings.selected_wallet_balance.changed.connect(on_wallet_balance_change)
         settings.selected_wallet_active_orders.changed.connect(on_active_orders_change)
 
