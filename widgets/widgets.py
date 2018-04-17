@@ -1,40 +1,70 @@
-from PyQt5 import QtWidgets, QtGui, QtChart
+from PyQt5 import QtWidgets, QtGui, QtCore
 
-import settings
-from wallets2 import Wallets
+import shared_data
+from wallet.wallets import Wallets
+from widgets.CoinInfo import CoinInfoWidget
+from widgets.LiveChart import LiveChart
+from widgets.OrderView import OrdersTable
 
 
-class PublicChart(QtChart.QChart):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.init()
+class InfoWidget:
+    def __init__(self, parent):
+        self.public_info_box = QtWidgets.QGroupBox('Info', parent)
+        self.coin_info_widget = CoinInfoWidget(parent=self.public_info_box)
+        self.live_chart_widget = LiveChart(parent=self.public_info_box)
+        self.public_pair = Bar('Pair', shared_data.supported_pairs, 20, 50, 70, 50, True, self.public_info_box)
+        self.public_market = Bar('Market', shared_data.supported_markets, 20, 20, 70, 20, True, self.public_info_box)
+        self.init_widget()
+        self.set_slots()
 
-    def init(self):
-        settings.public_pair_trades.changed.connect(self.update_series)
+    def init_widget(self):
+        # public_box
+        self.public_info_box.setGeometry(QtCore.QRect(10, 30, 780, 390))
 
-    def update_series(self):
-        # print("chart ", settings.public_pair_trades.value)
-        self.removeAllSeries()
-        trade_series = QtChart.QLineSeries()
-        trade_series.setColor(QtGui.QColor().fromRgb(0, 255, 0))
-        if len(settings.public_pair_trades.value) > 0:
-            series = []
-            for v in settings.public_pair_trades.value:
-                date = int(v['timestamp']) * 1000
-                value = float(v['price'])
-                trade_series.append(date, value)
-                series.append((date, value))
-            # print(series)
-            self.addSeries(trade_series)
-            self.setTitle(f"Data from {settings.selected_public_market}")
-            trade_series.setName(settings.selected_public_pair)
-        else:
-            self.setTitle("<market name>")
-            trade_series.setName("<coin_pair>")
-        self.createDefaultAxes()
-        axis_x = QtChart.QDateTimeAxis()
-        axis_x.setFormat("dd-MMM hh:mm")
-        self.setAxisX(axis_x, trade_series)
+    def set_slots(self):
+        self.public_market.combo.currentTextChanged.connect(self.select_public_market)
+        self.public_pair.combo.currentTextChanged.connect(self.select_public_symbol)
+        shared_data.symbol_ticker.changed.connect(self.coin_info_widget.update_info)
+
+    def select_public_market(self):
+        shared_data.selected_public_market = self.public_market.combo.currentText()
+        shared_data.public_data_last_time_update = 0
+
+    def select_public_symbol(self):
+        shared_data.selected_public_pair = self.public_pair.combo.currentText()
+        shared_data.public_data_last_time_update = 0
+
+
+class WalletWidget:
+    def __init__(self, parent):
+        self.wallet_box = QtWidgets.QGroupBox('Wallet', parent)
+        self.wallet_bar = Bar('Wallet', shared_data.names_of_wallets, 20, 30, 70, 30, True, self.wallet_box)
+        self.order_table = OrdersTable(self.wallet_box)
+        self.init_widget()
+        self.set_slots()
+
+    def init_widget(self):
+        self.wallet_box.setGeometry(QtCore.QRect(10, 440, 780, 250))
+        self.order_table.setGeometry(QtCore.QRect(10, 70, 760, 170))
+
+    def set_slots(self):
+        self.wallet_bar.combo.currentTextChanged.connect(self.select_wallet)
+        shared_data.balance.changed.connect(self.on_wallet_balance_change)
+        shared_data.active_orders.changed.connect(self.on_active_orders_change)
+
+    def select_wallet(self):
+        shared_data.selected_wallet_name = self.wallet_bar.combo.currentText()
+        if shared_data.selected_wallet_name != '':
+            shared_data.wallet_authorize_update_time = 0
+            shared_data.selected_wallet.clear()
+            shared_data.selected_wallet.update(
+                Wallets.get_wallet_by_name(shared_data.selected_wallet_name).Value)
+
+    def on_wallet_balance_change(self):
+        pass
+
+    def on_active_orders_change(self):
+        pass
 
 
 class SComboBox(QtWidgets.QComboBox):
@@ -59,7 +89,7 @@ class SComboBox(QtWidgets.QComboBox):
 # Class Bar represent bind of QLabel and QComboBox
 class Bar:
     def __init__(self, label_text, combo_list, label_x, label_y, combo_x, combo_y, enabled, parent):
-        self.label = QtWidgets.QLabel(parent=parent)
+        self.label = QtWidgets.QLabel(parent)
         self.label.setText(label_text)
         self.label.move(label_x, label_y)
         self.combo = SComboBox(data_source=combo_list, parent=parent)
@@ -74,10 +104,10 @@ class Bar:
 # Class Bar represent bind of QLabel and QComboBox
 class TextLine:
     def __init__(self, label_text, text, label_x, label_y, text_x, text_y, text_w, enabled, parent):
-        self.label = QtWidgets.QLabel(parent=parent)
+        self.label = QtWidgets.QLabel(parent)
         self.label.setText(label_text)
         self.label.move(label_x, label_y)
-        self.text_edit = QtWidgets.QLineEdit(parent=parent)
+        self.text_edit = QtWidgets.QLineEdit(parent)
         self.text_edit.setText(text)
         self.text_edit.move(text_x, text_y)
         self.text_edit.resize(text_w, 20)
@@ -89,8 +119,8 @@ class TextLine:
 
 
 class AddWalletWidget(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         self.init_ui()
 
     def init_ui(self):
@@ -126,8 +156,8 @@ class AddWalletWidget(QtWidgets.QWidget):
                               'robots': {}}
             Wallets.add_wallet(wallet_to_save)
             # global wallet_names
-            settings.names_of_wallets.clear()
-            settings.names_of_wallets.extend(Wallets.get_list_of_wallets().value)
+            shared_data.names_of_wallets.clear()
+            shared_data.names_of_wallets.extend(Wallets.get_list_of_wallets().value)
             self.close()
 
         # bind actions with button
@@ -135,8 +165,8 @@ class AddWalletWidget(QtWidgets.QWidget):
 
 
 class DeleteWalletWidget(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         self.init_ui()
 
     def init_ui(self):
@@ -156,7 +186,7 @@ class DeleteWalletWidget(QtWidgets.QWidget):
 
     def set_widgets(self):
         # global wallet_names
-        wallet_bar = Bar('Wallet name :', settings.names_of_wallets, 20, 30, 120, 30, True, self)
+        wallet_bar = Bar('Wallet name :', shared_data.names_of_wallets, 20, 30, 120, 30, True, self)
         save_button = QtWidgets.QPushButton('Delete', self)
         save_button_width = save_button.width()
         save_button.move(int((self.width() - save_button_width) / 2), 70)
@@ -165,8 +195,8 @@ class DeleteWalletWidget(QtWidgets.QWidget):
         def on_push_delete():
             Wallets.delete_wallet_by_name(wallet_bar.combo.currentText())
             # global wallet_names
-            settings.names_of_wallets.clear()
-            settings.names_of_wallets.extend(Wallets.get_list_of_wallets().value)
+            shared_data.names_of_wallets.clear()
+            shared_data.names_of_wallets.extend(Wallets.get_list_of_wallets().value)
             self.close()
 
         # bind actions with button

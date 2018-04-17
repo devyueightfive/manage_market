@@ -1,7 +1,7 @@
 from os import remove
 
-from wallets2 import Wallets
 from settings import wallets_file
+from wallet.wallets import Wallets
 
 if __name__ == '__main__':
     my_wallet = {'name': 'Nebraska wex',

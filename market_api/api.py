@@ -1,6 +1,5 @@
 class AbstractAPI:
-    """ Base Api class.
-
+    """ Base MarketApi class.
     """
     market_url = None
     public_strategy = None
@@ -11,25 +10,25 @@ class AbstractAPI:
 
     def get_ticker(self, coin_from, coin_to):
         try:
-            return self.public_strategy.ticker(self.market_url, coin_from, coin_to)
+            return self.public_strategy.getTicker(self.market_url, coin_from, coin_to)
         except Exception as e:
             print("Error ", e.__str__())
             return None
 
-    # return template
-    # {'eth_usd': {'avg': 405.804125,
-    #              'buy': 393.275,
-    #              'high': 425.48325,
-    #              'last': 392.17251,
-    #              'low': 386.125,
-    #              'sell': 391.08001,
-    #              'updated': 1522849214,
-    #              'vol': 3237730.99523,
-    #              'vol_cur': 7941.64073}}
-
-    def get_trades(self, coin_from, coin_to, **params):
+    def get_trades(self, coin_from, coin_to):
         try:
-            return self.public_strategy.trades(self.market_url, coin_from, coin_to, **params)
+            return self.public_strategy.getTrades(self.market_url, coin_from, coin_to)
+        except Exception as e:
+            print("Error ", e.__str__())
+            return None
+
+    def get_balance(self, wallet: dict):
+        """Response for the wallet Balance
+        :param wallet: wallet.keys()->['name','market','sign','orders']
+        :return: dictionary of Balance
+        """
+        try:
+            return self.authorize_strategy.getBalanceInfo(wallet)
         except Exception as e:
             print("Error ", e.__str__())
             return None
@@ -39,10 +38,13 @@ class WexApi(AbstractAPI):
     def __init__(self, version=1):
         super().__init__(version)
         self.market_url = 'wex.nz'
-        from .wex_api import Public
+        from .wex_api import Public, TradeApi
         self.public_strategy = {
             '1': Public(),
         }.get(str(version), Public())
+        self.authorize_strategy = {
+            '1': TradeApi(),
+        }.get(str(version), TradeApi())
 
 
 class BitfinexApi(AbstractAPI):
@@ -59,10 +61,13 @@ class YobitApi(AbstractAPI):
     def __init__(self, version=1):
         super().__init__(version)
         self.market_url = 'yobit.io'
-        from .yobit_api import Public
+        from .adapter_yobit import Public, TradeApi
         self.public_strategy = {
             '1': Public(),
         }.get(str(version), Public())
+        self.authorize_strategy = {
+            '1': TradeApi(),
+        }.get(str(version), TradeApi())
 
 
 class HitBTCApi(AbstractAPI):

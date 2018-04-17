@@ -31,17 +31,6 @@ class Public:
     def ticker(market_name, tfrom, tto):
         return Public.api_call(market_name, f'ticker/{tfrom}_{tto}')
 
-    # example
-    # {'eth_usd': {'avg': 405.804125,
-    #              'buy': 393.275,
-    #              'high': 425.48325,
-    #              'last': 392.17251,
-    #              'low': 386.125,
-    #              'sell': 391.08001,
-    #              'updated': 1522849214,
-    #              'vol': 3237730.99523,
-    #              'vol_cur': 7941.64073}}
-
     @staticmethod
     def depth(market_name, dfrom, dto, limit=None):
         if limit:  # 150 Default / 5000 Max
@@ -52,25 +41,21 @@ class Public:
     @staticmethod
     def trades(market_name, dfrom, dto, limit=None):
         return Public.api_call(market_name, f'trades/{dfrom}_{dto}?limit=5000')
-    # {
-    #   "type": "bid",
-    #   "price": 6990.02,
-    #   "amount": 0.00253002,
-    #   "tid": 22646685,
-    #   "timestamp": 1522857021
-    # }
 
 
 class TradeApi:
+    no_once = int(time.time())
+
     @staticmethod
-    def signature(market, params):
+    def signature(market: dict, params):
         sig = hmac.new(market['sign'].encode(), params.encode(), hashlib.sha512)
         return sig.hexdigest()
 
     @staticmethod
-    def api_call(market, method_name, params):
+    def api_call(market: dict, method_name, params):
         params['method'] = method_name
-        params['nonce'] = str(time.time()).split('.')[0]
+        params['nonce'] = str(TradeApi.no_once)
+        TradeApi.no_once += 1
         params = urllib.parse.urlencode(params)
         headers = {'Content-type': 'application/x-www-form-urlencoded', 'Key': market['key'],
                    'Sign': TradeApi.signature(market, params)}
@@ -91,7 +76,7 @@ class TradeApi:
         return TradeApi.api_call(market, 'Trade', params)
 
     @staticmethod
-    def active_orders(market, tpair=None):
+    def active_orders(market: dict, tpair=None):
         if tpair:
             params = {'pair': tpair}
             return TradeApi.api_call(market, 'ActiveOrders', params)

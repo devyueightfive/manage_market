@@ -9,8 +9,8 @@ import hashlib
 import hmac
 import http.client
 import json
-import urllib.parse
 import time
+import urllib.parse
 
 # Globals
 http_timeout = 10

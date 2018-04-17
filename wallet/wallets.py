@@ -1,8 +1,8 @@
 import json
 from builtins import staticmethod
 
+from ReturnObjects import Return
 from settings import wallets_file
-from settings import Return
 
 
 class Wallets:
@@ -23,7 +23,7 @@ class Wallets:
 
     @staticmethod
     def save_wallet(wallet_as_dictionary):  # save wallet data in wallets_file
-        if not Wallets.is_wallet(wallet_as_dictionary).value:
+        if not Wallets.is_wallet(wallet_as_dictionary).Value:
             return Return(-1, 'Error', "Given parameter is not wallet.")
         else:
             try:
