@@ -25,7 +25,7 @@ class CoinInfoWidget(QtWidgets.QWidget):
     def init_ui(self):
         font = QtGui.QFont()
         font.setBold(True)
-        font.setPointSize(13)
+        font.setPointSize(12)
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.blue)
         red_palette = QtGui.QPalette()
@@ -89,14 +89,17 @@ class CoinInfoWidget(QtWidgets.QWidget):
             symbol = f'{coin_from}{coin_to}'.upper()
             self.main_box.setTitle(f'{symbol}')
             data = shared_data.symbol_ticker.value
-            self.last.setText('{:0,.2f}'.format(float(data.get('last', 0))))
-            self.high.setText('{:0,.2f}'.format(float(data.get('high', 0))))
-            self.low.setText('{:0,.2f}'.format(float(data.get('low', 0))))
+            self.last.setText('{:0,.4f}'.format(float(data.get('last', 0))))
+            self.high.setText('{:0,.4f}'.format(float(data.get('high', 0))))
+            self.low.setText('{:0,.4f}'.format(float(data.get('low', 0))))
             self.volume.setText('{:0,.0f}'.format(float(data.get('vol', 0))))
             change = float(data.get('high', 0)) - float(data.get('low', 0))
-            self.change.setText('{:0,.2f}'.format(change))
+            self.change.setText('{:0,.4f}'.format(change))
             mavg = (float(data.get('high', 0)) + float(data.get('low', 0))) / 2
-            self.change_percent.setText('{:0,.2f} %'.format(change / mavg * 100))
+            if mavg == 0:
+                self.change_percent.setText('{:0,.2f} %'.format(0))
+            else:
+                self.change_percent.setText('{:0,.2f} %'.format(change / mavg * 100))
             self.server_time.setText(ctime(float(data.get('updated', 0))))
             self.url.setText(shared_data.selected_public_market)
         else:

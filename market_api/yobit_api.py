@@ -4,8 +4,7 @@
 
 import market_api.wex_api as wex
 
-"""
-YOBIT API looks like WEX API. 
+"""YOBIT API looks like WEX API. 
 """
 
 

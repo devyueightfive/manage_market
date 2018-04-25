@@ -124,7 +124,7 @@ class Wallets:
         try:
             with open(file=wallets_file, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
-        except Exception:  # not exist file
+        except Exception as e:  # not exist file
             wallets = {'wallets': {}, parameter_name: []}
         if parameter_name not in wallets.keys():
             wallets[parameter_name] = []

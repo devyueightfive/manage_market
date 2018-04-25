@@ -3,7 +3,6 @@
 """
 Adapter classes for 'wex_api'
 """
-from pprint import pprint
 
 import market_api.wex_api as wex
 from wallet.wallets import Wallets
@@ -14,11 +13,17 @@ http_timeout = 10
 class Public:
     @staticmethod
     def getTicker(marketUrl: str, coinFrom: str, coinTo: str):
-        return wex.Public.ticker(marketUrl, coinFrom, coinTo)
+        response = wex.Public.ticker(marketUrl, coinFrom, coinTo)
+        for symbol, element in response.items():
+            element['vol'], element['vol_cur'] = element['vol_cur'], element['vol']
+        return response
 
     @staticmethod
-    def getTrades(marketUrl: str, coinFrom: str, coinTo: str):
-        return wex.Public.trades(marketUrl, coinFrom, coinTo)
+    def getTrades(marketUrl: str, coinFrom: str, coinTo: str, limit=5000):
+        if limit:
+            return wex.Public.trades(marketUrl, coinFrom, coinTo, limit=limit)
+        else:
+            return wex.Public.trades(marketUrl, coinFrom, coinTo)
 
 
 class TradeApi:
@@ -36,6 +41,14 @@ class TradeApi:
             if response['success'] == 1 and 'return' in response.keys():
                 balance['orders'].update(response['return'])
         return balance
+
+    @staticmethod
+    def createOrder(wallet: dict, pair: str, type: str, rate: float, amount: float):
+        return wex.TradeApi.trade(wallet, pair, type, rate, amount)
+
+    @staticmethod
+    def cancelOrder(wallet: dict, order_id: str):
+        return wex.TradeApi.cancel_order(wallet, order_id)
 
 
 """
@@ -90,5 +103,6 @@ if __name__ == "__main__":
 
     name = '#1 wex'
     w = Wallets.get_wallet_by_name(name).Value
-    b = TradeApi.getBalanceInfo(w)
-    pprint(b)
+    # b = TradeApi.getBalanceInfo(w)
+    # pprint(b)
+    order = TradeApi.createOrder(w, "btc_usd")

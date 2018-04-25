@@ -40,19 +40,22 @@ class Public:
 
     @staticmethod
     def trades(market_name, dfrom, dto, limit=None):
-        return Public.api_call(market_name, f'trades/{dfrom}_{dto}?limit=5000')
+        if limit:
+            return Public.api_call(market_name, f'trades/{dfrom}_{dto}?limit={limit}')
+        else:
+            return Public.api_call(market_name, f'trades/{dfrom}_{dto}')
 
 
 class TradeApi:
     no_once = int(time.time())
 
     @staticmethod
-    def signature(market: dict, params):
+    def signature(market: dict, params: dict):
         sig = hmac.new(market['sign'].encode(), params.encode(), hashlib.sha512)
         return sig.hexdigest()
 
     @staticmethod
-    def api_call(market: dict, method_name, params):
+    def api_call(market: dict, method_name: str, params: dict):
         params['method'] = method_name
         params['nonce'] = str(TradeApi.no_once)
         TradeApi.no_once += 1
@@ -67,63 +70,63 @@ class TradeApi:
         return data
 
     @staticmethod
-    def getinfo(market):
-        return TradeApi.api_call(market, 'getInfo', {})
+    def getinfo(wallet: dict):
+        return TradeApi.api_call(wallet, 'getInfo', {})
 
     @staticmethod
-    def trade(market, tpair, ttype, trate, tamount):
+    def trade(wallet: dict, tpair: str, ttype: str, trate: float, tamount: float):
         params = {'pair': tpair, 'type': ttype, 'rate': trate, 'amount': tamount}
-        return TradeApi.api_call(market, 'Trade', params)
+        return TradeApi.api_call(wallet, 'Trade', params)
 
     @staticmethod
-    def active_orders(market: dict, tpair=None):
+    def active_orders(wallet: dict, tpair=None):
         if tpair:
             params = {'pair': tpair}
-            return TradeApi.api_call(market, 'ActiveOrders', params)
+            return TradeApi.api_call(wallet, 'ActiveOrders', params)
         else:
-            return TradeApi.api_call(market, 'ActiveOrders', {})
+            return TradeApi.api_call(wallet, 'ActiveOrders', {})
 
     @staticmethod
-    def order_info(market, order_id):
+    def order_info(wallet: dict, order_id: str):
         params = {'order_id': order_id}
-        return TradeApi.api_call(market, 'OrderInfo', params)
+        return TradeApi.api_call(wallet, 'OrderInfo', params)
 
     @staticmethod
-    def cancel_order(market, order_id):
+    def cancel_order(wallet: dict, order_id: str):
         params = {'order_id': order_id}
-        return TradeApi.api_call(market, 'CancelOrder', params)
+        return TradeApi.api_call(wallet, 'CancelOrder', params)
 
     @staticmethod
-    def trade_history(market, tfrom, tcount, tfrom_id, tend_id, torder, tsince, tend, tpair):
+    def trade_history(wallet, tfrom, tcount, tfrom_id, tend_id, torder, tsince, tend, tpair):
         params = {'from': tfrom, 'count': tcount, 'from_id': tfrom_id, 'end_id': tend_id, 'order': torder,
                   'since': tsince, 'end': tend, 'pair': tpair}
-        return TradeApi.api_call(market, 'TradeHistory', params)
+        return TradeApi.api_call(wallet, 'TradeHistory', params)
 
     @staticmethod
-    def trans_history(market, tfrom, tcount, tfrom_id, tend_id, torder, tsince, tend):
+    def trans_history(wallet, tfrom, tcount, tfrom_id, tend_id, torder, tsince, tend):
         params = {'from': tfrom, 'count': tcount, 'from_id': tfrom_id, 'end_id': tend_id, 'order': torder,
                   'since': tsince, 'end': tend}
-        return TradeApi.api_call(market, 'TransHistory', params)
+        return TradeApi.api_call(wallet, 'TransHistory', params)
 
     @staticmethod
-    def coin_deposit_address(market, coin_name):
+    def coin_deposit_address(wallet, coin_name):
         params = {'coinName': coin_name}
-        return TradeApi.api_call(market, 'CoinDepositAddress', params)
+        return TradeApi.api_call(wallet, 'CoinDepositAddress', params)
 
     @staticmethod
-    def withdraw_coin(market, coin_name, amount,
+    def withdraw_coin(wallet, coin_name, amount,
                       address):  # Requires a special API key. See Trade API docs for more information.
         params = {'coinName': coin_name, 'amount': amount, 'address': address}
-        return TradeApi.api_call(market, 'WithdrawCoin', params)
+        return TradeApi.api_call(wallet, 'WithdrawCoin', params)
 
     @staticmethod
-    def create_coupon(market, currency, amount,
+    def create_coupon(wallet, currency, amount,
                       receiver):  # Requires a special API key. See Trade API docs for more information.
         params = {'currency': currency, 'amount': amount, 'receiver': receiver}
-        return TradeApi.api_call(market, 'CreateCoupon', params)
+        return TradeApi.api_call(wallet, 'CreateCoupon', params)
 
     @staticmethod
-    def redeem_coupon(market,
+    def redeem_coupon(wallet,
                       coupon):  # Requires a special API key. See Trade API docs for more information.
         params = {'coupon': coupon}
-        return TradeApi.api_call(market, 'RedeemCoupon', params)
+        return TradeApi.api_call(wallet, 'RedeemCoupon', params)

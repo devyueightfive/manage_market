@@ -5,10 +5,10 @@ Adapter classes for 'yobit_api'
 """
 from pprint import pprint
 
-import market_api.yobit_api as yobit
+import market_api.yobit_api as native_api
 from wallet.wallets import Wallets
 
-http_timeout = 10
+http_timeout = 15
 
 convertible_coins = ['btc', 'eth', 'doge', 'waves', 'usd', 'rur']
 not_coins = ['usd', 'rur']
@@ -17,11 +17,17 @@ not_coins = ['usd', 'rur']
 class Public:
     @staticmethod
     def getTicker(marketUrl: str, coinFrom: str, coinTo: str):
-        return yobit.Public.ticker(marketUrl, coinFrom, coinTo)
+        response = native_api.Public.ticker(marketUrl, coinFrom, coinTo)
+        for symbol, element in response.items():
+            element['vol'], element['vol_cur'] = element['vol_cur'], element['vol']
+        return response
 
     @staticmethod
-    def getTrades(marketUrl: str, coinFrom: str, coinTo: str):
-        return yobit.Public.trades(marketUrl, coinFrom, coinTo)
+    def getTrades(marketUrl: str, coinFrom: str, coinTo: str, limit=1999):
+        if limit:
+            return native_api.Public.trades(marketUrl, coinFrom, coinTo, limit=limit)
+        else:
+            return native_api.Public.trades(marketUrl, coinFrom, coinTo)
 
 
 class TradeApi:
@@ -29,7 +35,7 @@ class TradeApi:
     def getBalanceInfo(wallet: dict):
         balance = {'funds': {}, 'orders': {}}
         # request for Info
-        response = yobit.TradeApi.getinfo(wallet)
+        response = native_api.TradeApi.getinfo(wallet)
         # pprint(response)
         if response['success'] == 1:
             funds = response.get('return', {}).get('funds', {})
@@ -44,11 +50,19 @@ class TradeApi:
                     if coin != con_coin and coin not in not_coins:
                         symbol = f"{coin}_{con_coin}"
                         # request for Orders
-                        response = yobit.TradeApi.active_orders(wallet, symbol)
+                        response = native_api.TradeApi.active_orders(wallet, symbol)
                         # print(f"{symbol}:\n {response}")
                         if response['success'] == 1 and 'return' in response.keys():
                             balance['orders'].update(response['return'])
         return balance
+
+    @staticmethod
+    def createOrder(wallet: dict, pair: str, stype: str, rate: float, amount: float):
+        return native_api.TradeApi.trade(wallet, pair, stype, rate, amount)
+
+    @staticmethod
+    def cancelOrder(wallet: dict, order_id: str):
+        return native_api.TradeApi.cancel_order(wallet, order_id)
 
 
 """

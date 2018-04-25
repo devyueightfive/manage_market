@@ -4,14 +4,19 @@ class WalletModel(object):
         pass
 
 
-class Balance(object):
+class BalanceModel(object):
+    attributes = ['coin', 'amount']
+    attribute_length = [50, 90]
+
     def __init__(self):
-        pass
+        self.funds = {}
+        self.orders = {}
 
 
 class OrderModel(object):
-    attributes = ['id', 'pair', 'type', 'start_amount',
-                  'amount', 'rate', 'timestamp_created', 'status']
+    attributes = ['id', 'pair', 'type',
+                  'amount', 'rate', 'timestamp_created']
+    attribute_length = [100, 50, 30, 90, 50, 150]
 
     def __init__(self):
         self.id = None

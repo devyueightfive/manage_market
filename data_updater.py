@@ -1,13 +1,12 @@
 import time
-from pprint import pprint
 from threading import Thread
 
 import shared_data
 from ReturnObjects import Return
 from market_api import api
 
-delay_update_for_public_requests = 10  # in seconds
-delay_update_for_authorize_requests = 10  # in seconds
+delay_update_for_public_requests = 13  # in seconds
+delay_update_for_authorize_requests = 300  # in seconds
 
 
 class MarketDataUpdater(Thread):
@@ -28,7 +27,9 @@ class MarketDataUpdater(Thread):
     @staticmethod
     def update():
         MarketDataUpdater.update_public_data()
+        # print('public data updated.')
         MarketDataUpdater.update_authorize_data()
+        # print('authorize data updated.')
         time.sleep(0.5)
 
     @staticmethod
@@ -66,6 +67,7 @@ class MarketDataUpdater(Thread):
     @staticmethod
     def update_ticker_info(market_api, coin_from, coin_to):
         response = market_api.get_ticker(coin_from, coin_to)
+        # print(f'Ticker response : {response}')
         if response:
             shared_data.symbol_ticker.value.clear()
             shared_data.symbol_ticker.value.update(response.get(shared_data.selected_public_pair, {}))
@@ -73,9 +75,9 @@ class MarketDataUpdater(Thread):
 
     @staticmethod
     def update_trade_info(market_api, coin_from, coin_to):
-        response = market_api.get_trades(coin_from, coin_to, limit=1500)
+        response = market_api.get_trades(coin_from, coin_to)
+        # print(f'Trade response : {response}')
         if response:
-            print(response)
             shared_data.trades.value.clear()
             shared_data.trades.value.extend(response.get(shared_data.selected_public_pair, {}))
             shared_data.trades.changed.emit()
@@ -91,22 +93,15 @@ class MarketDataUpdater(Thread):
                 # update data
                 if market_api:
                     MarketDataUpdater.update_balance(market_api)
-                    MarketDataUpdater.update_active_orders(market_api)
+        else:
+            shared_data.balance.value.clear()
+            shared_data.balance.changed.emit()
 
     @staticmethod
     def update_balance(market_api: api.AbstractAPI):
         response = market_api.get_balance(shared_data.selected_wallet)
-        pprint(response)
-        # if response.get('success') == 1:
-        #     shared_data.balance.value.clear()
-        #     shared_data.balance.value.update(response.get('return', {}))
-        #     shared_data.balance.changed.emit()
-
-    @staticmethod
-    def update_active_orders(market_api):
-        response = market_api.get_orders(shared_data.selected_wallet)
-        pprint(response)
-        if response.get('success') == 1:
-            shared_data.active_orders.value.clear()
-            shared_data.active_orders.value.update(response)
-            shared_data.active_orders.changed.emit()
+        print(f'Balance response : {response}')
+        if response:
+            shared_data.balance.value.clear()
+            shared_data.balance.value.update(response)
+            shared_data.balance.changed.emit()
