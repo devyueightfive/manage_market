@@ -1,13 +1,13 @@
 import data_updater
 from QtObjects import ValueWithSignal
-from market_api import api
+from market_api import cryptoMarketApi
 from wallet.wallets import Wallets
 
 # Thread updates global data by requests to markets
 dataUpdater = data_updater.MarketDataUpdater()
 
 # List of supported markets, pairs
-_, supported_markets = api.get_api(None)
+_, supported_markets = cryptoMarketApi.getApi(None)
 supported_pairs = Wallets.value_range_of_parameter('pairs').Value
 
 # User selections in GUI

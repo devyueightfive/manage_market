@@ -1,1 +1,1 @@
-from .api import get_api
+from .cryptoMarketApi import getApi

@@ -36,10 +36,10 @@ def read_data_from_h5():
 
 if __name__ == "__main__":
     clear_h5()
-    my_api = market_api.get_api(url)[0]
+    my_api = market_api.getApi(url)[0]
     last_rows = 0
     while True:
-        data = my_api.get_trades(coin, currency, limit=150)
+        data = my_api.requestTradesInfo(coin, currency, withRowLimit=150)
         sorted_data = sorted(data.get(pair), key=lambda t: t['tid'])
         print(len(sorted_data))
         rows = write_data_to_h5(sorted_data)

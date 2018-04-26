@@ -3,7 +3,7 @@ from threading import Thread
 
 import shared_data
 from ReturnObjects import Return
-from market_api import api
+from market_api import cryptoMarketApi
 
 delay_update_for_public_requests = 13  # in seconds
 delay_update_for_authorize_requests = 300  # in seconds
@@ -44,7 +44,7 @@ class MarketDataUpdater(Thread):
             if (time.time() - shared_data.public_data_last_time_update) > delay_update_for_public_requests:
                 shared_data.public_data_last_time_update = time.time()
                 coin_from, coin_to = shared_data.selected_public_pair.split(sep='_')
-                market_api, _ = api.get_api(shared_data.selected_public_market)
+                market_api, _ = cryptoMarketApi.getApi(shared_data.selected_public_market)
                 # update data
                 if market_api:
                     MarketDataUpdater.update_ticker_info(market_api, coin_from, coin_to)
@@ -66,7 +66,7 @@ class MarketDataUpdater(Thread):
 
     @staticmethod
     def update_ticker_info(market_api, coin_from, coin_to):
-        response = market_api.get_ticker(coin_from, coin_to)
+        response = market_api.requestTickerInfo(coin_from, coin_to)
         # print(f'Ticker response : {response}')
         if response:
             shared_data.symbol_ticker.value.clear()
@@ -75,7 +75,7 @@ class MarketDataUpdater(Thread):
 
     @staticmethod
     def update_trade_info(market_api, coin_from, coin_to):
-        response = market_api.get_trades(coin_from, coin_to)
+        response = market_api.requestTradesInfo(coin_from, coin_to)
         # print(f'Trade response : {response}')
         if response:
             shared_data.trades.value.clear()
@@ -89,7 +89,7 @@ class MarketDataUpdater(Thread):
             if (time.time() - shared_data.wallet_authorize_update_time) > delay_update_for_authorize_requests:
                 shared_data.wallet_authorize_update_time = time.time()
                 # from wallet select 'market' url and define api
-                market_api = api.get_api(shared_data.selected_wallet.get('market', ''))[0]
+                market_api = cryptoMarketApi.getApi(shared_data.selected_wallet.get('market', ''))[0]
                 # update data
                 if market_api:
                     MarketDataUpdater.update_balance(market_api)
@@ -98,8 +98,8 @@ class MarketDataUpdater(Thread):
             shared_data.balance.changed.emit()
 
     @staticmethod
-    def update_balance(market_api: api.AbstractAPI):
-        response = market_api.get_balance(shared_data.selected_wallet)
+    def update_balance(market_api: cryptoMarketApi.AbstractMarketAPI):
+        response = market_api.requestBalance(shared_data.selected_wallet)
         print(f'Balance response : {response}')
         if response:
             shared_data.balance.value.clear()

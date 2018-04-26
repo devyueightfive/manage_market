@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from bs4 import BeautifulSoup
 
 import shared_data
-from market_api.api import get_api
+from market_api.cryptoMarketApi import getApi
 from wallet.wallets import Wallets
 from widgets.CoinInfo import CoinInfoWidget
 from widgets.LiveChart import LiveChart
@@ -281,7 +281,7 @@ class AddOrder(QtWidgets.QWidget):
         if re.match("^\d+?\.?\d+?$", rate) and re.match("^\d+?\.?\d+?$", remains):
             amount = 0
             if typeAction == 'buy':
-                api = get_api(shared_data.selected_wallet.get('market'))[0]
+                api = getApi(shared_data.selected_wallet.get('market'))[0]
                 amount = float(remains) / float(rate) * (1 - api.market_fine)
             elif typeAction == 'sell':
                 amount = float(remains)
@@ -300,13 +300,8 @@ class AddOrder(QtWidgets.QWidget):
         if actionType not in ['', None] and pair not in ['', None]:
             if re.match("^\d+?\.?\d+?$", rate) and re.match("^\d+?\.?\d+?$", amount):
                 wallet = shared_data.selected_wallet
-                api = get_api(shared_data.selected_wallet.get('market'))[0]
-                response = api.create_order(wallet,
-                                            pair,
-                                            actionType,
-                                            float(rate),
-                                            float(amount)
-                                            )
+                api = getApi(shared_data.selected_wallet.get('market'))[0]
+                response = api.requestOrderCreation(pair, actionType, float(rate), float(amount), wallet)
                 shared_data.wallet_authorize_update_time = 0
                 self.close()
                 if response['success'] == 0:
@@ -383,8 +378,8 @@ class DeleteOrder(QtWidgets.QWidget):
         order_id = self.orderID.combo.currentText()
         if order_id not in ['', None]:
             wallet = shared_data.selected_wallet
-            api = get_api(shared_data.selected_wallet.get('market'))[0]
-            response = api.cancel_order(wallet, self.orderID.combo.currentText())
+            api = getApi(shared_data.selected_wallet.get('market'))[0]
+            response = api.requestOrderCancellation(self.orderID.combo.currentText(), wallet)
             shared_data.wallet_authorize_update_time = 0
             if response['success'] == 0:
                 mb = QtWidgets.QMessageBox()

@@ -5,10 +5,10 @@ import time
 
 import tables
 
-from market_api import api
+from market_api import cryptoMarketApi
 
 'list of available markets(urls)'
-urls = api.get_api(None)[1]
+urls = cryptoMarketApi.getApi(None)[1]
 'list of times when market trades were updated'
 updated = []
 for i in urls:
@@ -63,7 +63,7 @@ class WolfRetriever(threading.Thread):
         self.url = outer_url
 
     def run(self):
-        wolf_api = api.get_api(self.url)[0]
+        wolf_api = cryptoMarketApi.getApi(self.url)[0]
         while True:
             self.catch_trades(wolf_api)
             time.sleep(delay)
@@ -71,7 +71,7 @@ class WolfRetriever(threading.Thread):
     def catch_trades(self, outer_api):
         for coin in coins:
             for cur in currency:
-                sheeps = outer_api.get_trades(coin, cur, limit=150)
+                sheeps = outer_api.requestTradesInfo(coin, cur, withRowLimit=150)
                 p = f"{coin}_{cur}"
                 print(f"<{self.url}> : ({len(sheeps[p])}) : {sheeps}")
                 time.sleep(3)
