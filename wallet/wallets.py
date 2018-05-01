@@ -1,8 +1,8 @@
 import json
 from builtins import staticmethod
 
-from ReturnObjects import Return
-from settings import wallets_file
+from TraderClasses import Return
+from settings import pathToWalletsFile
 
 
 class Wallets:
@@ -11,79 +11,79 @@ class Wallets:
     # wallet keys = ['name', 'market', 'key', 'sign', 'robots']
 
     @staticmethod
-    def get_wallet_by_name(wallet_name):  # return wallet as dictionary
+    def getWallet(byName: str):  # return wallet as dictionary
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
-        if wallet_name not in wallets['wallets']:
-            return Return(-1, 'Warning', f"'{wallet_name}' not in 'wallets'.")
-        return Return(wallets['wallets'][wallet_name], text=f"'{wallet_name}' wallet was selected.")
+        if byName not in wallets['wallets']:
+            return Return(-1, 'Warning', f"'{byName}' not in 'wallets'.")
+        return Return(wallets['wallets'][byName], text=f"'{byName}' wallet was selected.")
 
     @staticmethod
-    def save_wallet(wallet_as_dictionary):  # save wallet data in wallets_file
-        if not Wallets.is_wallet(wallet_as_dictionary).Value:
+    def save(theWallet: dict):  # save wallet data in wallets_file
+        if not Wallets.isWallet(theWallet).Value:
             return Return(-1, 'Error', "Given parameter is not wallet.")
         else:
             try:
-                with open(file=wallets_file, mode="r") as f:
+                with open(file=pathToWalletsFile, mode="r") as f:
                     wallets = json.load(f)  # load entry as dictionary
             except Exception:
                 wallets = {'wallets': {}}
             # save elements in data
-            wallets['wallets'][wallet_as_dictionary['name']] = wallet_as_dictionary
+            wallets['wallets'][theWallet['name']] = theWallet
             # save file with new data
             try:
-                with open(file=wallets_file, mode="w") as f:
+                with open(file=pathToWalletsFile, mode="w") as f:
                     json.dump(wallets, f)
             except Exception as e:
                 return Return(-1, 'Error', e.__str__())
-            return Return(0, text=f"Wallet '{wallet_as_dictionary['name']}' saved")
+            return Return(0, text=f"Wallet '{theWallet['name']}' saved")
 
     @staticmethod
-    def add_wallet(wallet_as_dictionary):
-        return Wallets.save_wallet(wallet_as_dictionary)
+    def add(theWallet):
+        return Wallets.save(theWallet)
 
     @staticmethod
-    def delete_wallet_by_name(wallet_name):
+    def deleteWallet(byName):
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
-        if wallet_name not in wallets['wallets']:
-            return Return(-1, 'Warning', f"'{wallet_name}' not in 'wallets'.")
-        del wallets['wallets'][wallet_name]
+        if byName not in wallets['wallets']:
+            return Return(-1, 'Warning', f"'{byName}' not in 'wallets'.")
+        del wallets['wallets'][byName]
         # save file with new data
         try:
-            with open(file=wallets_file, mode="w") as f:
+            with open(file=pathToWalletsFile, mode="w") as f:
                 json.dump(wallets, f)
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
-        return Return(0, text=f"'{wallet_name}' wallet was deleted.")
+        return Return(0, text=f"'{byName}' wallet was deleted.")
 
     @staticmethod
-    def dictionary_of_wallets():  # return array of wallets as dictionary
+    def getDictionaryOfWallets():  # return array of wallets as dictionary
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Warning', e.__str__())
         return Return(wallets['wallets'])
 
     @staticmethod
-    def is_wallet(wallet_as_dictionary):
+    def isWallet(likeWallet: dict):
         keys = ['name', 'market', 'key', 'sign', 'robots']
         for k in keys:
-            if k not in wallet_as_dictionary.keys():
+            if k not in likeWallet.keys():
                 return Return(False, 'Error', 'It is not wallet.')
         return Return(True)
 
     @staticmethod
-    def get_set_of_used_markets():
+    def getArrayOfUsedMarkets():
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
@@ -94,9 +94,9 @@ class Wallets:
         return Return(set(sorted(set_of_markets)))
 
     @staticmethod
-    def get_list_of_wallets():
+    def getListOfWallets():
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
@@ -107,65 +107,66 @@ class Wallets:
         return Return(sorted(list_of_wallets))
 
     @staticmethod
-    def get_list_of_robot_names_by_wallet_name(wallet_name):  # return list of robot names
+    def getListOfRobotNames(byWalletName):  # return list of robot names
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return([], 'Error', e.__str__())
-        if wallet_name not in wallets['wallets']:
-            return Return([], 'Warning', f"'{wallet_name}' not in 'wallets'.")
-        wallet = wallets['wallets'][wallet_name]
+        if byWalletName not in wallets['wallets']:
+            return Return([], 'Warning', f"'{byWalletName}' not in 'wallets'.")
+        wallet = wallets['wallets'][byWalletName]
         robot_names = wallet['robots'].keys()
         return Return(list(robot_names))
 
     @staticmethod
-    def add_parameter_value(parameter_name, parameter_value):  # save market_name in the list of supported markets
+    def addParameterNameAndValueToWallets(withParameterName,
+                                          withParameterValue):  # save market_name in the list of supported markets
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:  # not exist file
-            wallets = {'wallets': {}, parameter_name: []}
-        if parameter_name not in wallets.keys():
-            wallets[parameter_name] = []
+            wallets = {'wallets': {}, withParameterName: []}
+        if withParameterName not in wallets.keys():
+            wallets[withParameterName] = []
         # save elements in data
-        if parameter_value not in wallets[parameter_name]:
-            wallets[parameter_name].append(parameter_value)
+        if withParameterValue not in wallets[withParameterName]:
+            wallets[withParameterName].append(withParameterValue)
         # save file with new data
         try:
-            with open(file=wallets_file, mode="w") as f:
+            with open(file=pathToWalletsFile, mode="w") as f:
                 json.dump(wallets, f)
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
-        return Return(0, text=f"'{parameter_value}' added to '{parameter_name}'")
+        return Return(0, text=f"'{withParameterValue}' added to '{withParameterName}'")
 
     @staticmethod
-    def delete_parameter_value(parameter_name, parameter_value):
+    def removeValue(forParameterName, withParameterValue):
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
-        if parameter_value not in wallets[parameter_name]:
-            return Return(-1, 'Warning', f"'{parameter_value}' not in '{parameter_name}'.")
-        wallets[parameter_name].remove(parameter_value)
+        if withParameterValue not in wallets[forParameterName]:
+            return Return(-1, 'Warning', f"'{withParameterValue}' not in '{forParameterName}'.")
+        wallets[forParameterName].remove(withParameterValue)
         # save file with new data
         try:
-            with open(file=wallets_file, mode="w") as f:
+            with open(file=pathToWalletsFile, mode="w") as f:
                 json.dump(wallets, f)
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
-        return Return(0, text=f"'{parameter_value}' was deleted in '{parameter_name}'.")
+        return Return(0, text=f"'{withParameterValue}' was deleted in '{forParameterName}'.")
 
     @staticmethod
-    def value_range_of_parameter(parameter_name):
+    def getValueRange(byParameterName):
         try:
-            with open(file=wallets_file, mode="r") as f:
+            with open(file=pathToWalletsFile, mode="r") as f:
                 wallets = json.load(f)  # load entry as dictionary
         except Exception as e:
             return Return(-1, 'Error', e.__str__())
         parameter_set = set()
-        for v in wallets[parameter_name]:
+        for v in wallets[byParameterName]:
             parameter_set.add(v)
         # sort list
         return Return(set(sorted(parameter_set)))
