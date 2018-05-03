@@ -50,17 +50,17 @@ class TweetWidget(QtWidgets.QWidget):
         self._labelForTweet.setStyleSheet(
             "background-color:white;border-radius:10px;border: 1px solid gray;padding: 2 4px;")
         text = tweet.get('text', "")
-        self.height = (math.ceil(len(text) / 34) + 2) * 15 + 50
+        self.height = (math.ceil(len(text) / 30)) * 16 + 24 + 20 * 3
         name = tweet.get('screen_name', "")
         source = settings.pathToTwitterImage
         url = tweet.get('url', "")
         timeCreatedAt = tweet.get('created_at', "")
         text = f'<span>' \
                f'<a href = "{url}">' \
-               f'<img src = "{source}" height = "20" width = "20"></img>' \
+               f'<img src = "{source}" height = "24" width = "24"></img>' \
                f'<span style= "color:blue">@{name}</span>' \
                f'</a>' \
-               f'<p style = "background-color:white;color:black;text-align:left;">{text}</p>' \
+               f'<p style = "font-family:monospace;font-size:12px;line-height:16px;">{text}</p>' \
                f'<p style = "text-align:right;">{timeCreatedAt}</p>' \
                f'</span>'
         pass

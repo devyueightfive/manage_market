@@ -12,4 +12,4 @@ pathToBalanceFile = os.path.join(pathToJson, "balance.json")
 pathToActiveOrdersFile = os.path.join(pathToJson, "active_orders.json")
 pathToTwitterAccounts = os.path.join(pathToJson, "twitterScreenNames.json")
 
-pathToTwitterImage = os.path.join(pathToImg, "twitter.png")
+pathToTwitterImage = os.path.join(pathToImg, "twitter-logo.jpg")

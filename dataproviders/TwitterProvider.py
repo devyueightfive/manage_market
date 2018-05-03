@@ -32,5 +32,4 @@ class TweetNewsProvider(threading.Thread):
                     sharedData.tweets.value.clear()
                     tweets = TwitterNews.getTweetsFrom(twitterAccounts)
                     sharedData.tweets.value.extend(tweets)
-                    print(sharedData.tweets.value)
                     sharedData.tweets.changed.emit()
